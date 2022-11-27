@@ -118,6 +118,9 @@ export default class Sketch {
 	addObjects() {
 		let that = this;
 
+		// --------------------------------------------- Bg setting
+		this.geometryFullscreen = new T.PlaneGeometry(this.width, this.height, 1, 1);
+
 		this.material = new T.ShaderMaterial({
 			extensions: {
 				derivatives: '#extension GL_OES_standard_derivatives : enable',
@@ -128,20 +131,18 @@ export default class Sketch {
 				resolution: { type: 'v4', value: new T.Vector4() },
 				uDisplacement: { value: null },
 				uTexture: { value: new T.TextureLoader().load(image) },
-				// uvRate1: {
-				// 	value: new T.Vector2(1, 1),
-				// },
 			},
-			// wireframe: true,
-			// transparent: true,
 			vertexShader: this.vertex,
 			fragmentShader: this.fragment,
 		});
 
+		this.quad = new T.Mesh(this.geometryFullscreen, this.material);
+		this.sceneSecond.add(this.quad);
+		// --------------------------------------------- Bg setting###
+
+		// --------------------------------------------- Wave setting
 		this.maxWaves = 150;
 		this.geometry = new T.PlaneGeometry(86, 86, 1, 1);
-		this.geometryFullscreen = new T.PlaneGeometry(this.width, this.height, 1, 1);
-
 		this.meshes = [];
 
 		for (let i = 0; i < this.maxWaves; i += 1) {
@@ -149,20 +150,18 @@ export default class Sketch {
 				map: new T.TextureLoader().load(brush),
 				transparent: true,
 				blending: T.AdditiveBlending,
-				depthTest: false,
-				depthWrite: false,
+				depthTest: false, // накладывает одну текстуру волны на другую
+				depthWrite: false, // накладывает одну текстуру волны на другую
 			});
 
 			const mesh = new T.Mesh(this.geometry, material);
-			// mesh.visible = false;
-			mesh.rotation.z = 2 * Math.PI * Math.random();
+			mesh.visible = false;
+			mesh.rotation.z = 2 * Math.PI * Math.random(); // random angle
 
 			this.scene.add(mesh);
 			this.meshes.push(mesh);
 		}
-
-		this.quad = new T.Mesh(this.geometryFullscreen, this.material);
-		this.sceneSecond.add(this.quad);
+		// --------------------------------------------- Wave setting###
 	}
 
 	stop() {
@@ -195,7 +194,7 @@ export default class Sketch {
 	trackMousePos() {
 		if (!(Math.abs(this.mouse.x - this.prevMouse.x) < 4 && Math.abs(this.mouse.y - this.prevMouse.y) < 4)) {
 			this.setNewWave(this.mouse.x, this.mouse.y, this.currentWave);
-			this.currentWave = (this.currentWave + 1) % this.maxWaves;
+			this.currentWave = (this.currentWave + 1) % this.maxWaves; // меняем стейт последней волны в цепочке на начальный стейт анимации
 		}
 		this.prevMouse.x = this.mouse.x;
 		this.prevMouse.y = this.mouse.y;
@@ -208,22 +207,26 @@ export default class Sketch {
 		// this.material.uniforms.time.value = this.time;
 		window.requestAnimationFrame(this.render.bind(this));
 
+		// ---------------------------------------------Сливаем 2 сцены в один рендер
 		this.renderer.setRenderTarget(this.baseTexture);
 		this.renderer.render(this.scene, this.camera);
 		this.material.uniforms.uDisplacement.value = this.baseTexture.texture;
 		this.renderer.setRenderTarget(null);
 		this.renderer.clear();
 		this.renderer.render(this.sceneSecond, this.camera);
+		// ---------------------------------------------Сливаем 2 сцены в один рендер###
 
 		this.meshes.forEach((mesh) => {
 			if (!mesh.visible) return;
 			const m = mesh;
-			// m.position.x = this.mouse.x;
-			// m.position.y = this.mouse.y;
+
+			// --------------------------------------------- Плавно добавляем финильный стейт волне
 			m.rotation.z += 0.02;
 			m.material.opacity *= 0.96;
 			m.scale.x = m.scale.x * 0.982 + 0.108;
 			m.scale.y = m.scale.x;
+			m.visible = true;
+			// --------------------------------------------- Плавно добавляем финильный стейт волне###
 
 			if (m.material.opacity < 0.002) m.visible = false;
 		});
