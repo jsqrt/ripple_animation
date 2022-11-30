@@ -205,7 +205,6 @@ export default class Sketch {
 		if (!this.isPlaying) return;
 		this.time += 0.05;
 		// this.material.uniforms.time.value = this.time;
-		window.requestAnimationFrame(this.render.bind(this));
 
 		// ---------------------------------------------Сливаем 2 сцены в один рендер
 		this.renderer.setRenderTarget(this.baseTexture);
@@ -230,5 +229,7 @@ export default class Sketch {
 
 			if (m.material.opacity < 0.002) m.visible = false;
 		});
+
+		window.requestAnimationFrame(this.render.bind(this));
 	}
 }
