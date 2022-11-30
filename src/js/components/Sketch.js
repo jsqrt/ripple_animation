@@ -192,7 +192,7 @@ export default class Sketch {
 	}
 
 	trackMousePos() {
-		if (!(Math.abs(this.mouse.x - this.prevMouse.x) < 4 && Math.abs(this.mouse.y - this.prevMouse.y) < 4)) {
+		if (!(Math.abs(this.mouse.x - this.prevMouse.x) < 4 && Math.abs(this.mouse.y - this.prevMouse.y) < 4)) { // определяем допустимую дистанцию между волнами
 			this.setNewWave(this.mouse.x, this.mouse.y, this.currentWave);
 			this.currentWave = (this.currentWave + 1) % this.maxWaves; // меняем стейт последней волны в цепочке на начальный стейт анимации
 		}
